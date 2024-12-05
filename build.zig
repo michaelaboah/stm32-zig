@@ -14,9 +14,16 @@ pub fn build(b: *std.Build) void {
 
     const optimize = b.standardOptimizeOption(.{});
 
-    const elf = b.addExecutable(.{
-        .name = "firmware.elf",
-        .root_source_file = b.path("src/main.zig"),
+    const shared_lib = b.addModule("shared", .{ 
+        .root_source_file = b.path("shared/shared.zig"),
+        .target = target,
+        .optimize = optimize
+    });
+
+
+    const bootloader = b.addExecutable(.{
+        .name = "bootloader.elf",
+        .root_source_file = b.path("bootloader/src/main.zig"),
         .target = target,
         .optimize = optimize,
         .link_libc = false,
@@ -24,23 +31,55 @@ pub fn build(b: *std.Build) void {
         .single_threaded = true,
     });
 
-    elf.setLinkerScript(b.path("linkerscript.ld"));
-    elf.addLibraryPath(.{ .cwd_relative = "/usr/arm-none-eabi/lib" });
-    elf.addLibraryPath(.{ .cwd_relative =  "/usr/lib/gcc/arm-none-eabi/13.2.0/thumb/v7e-m+fp/hard/" });
-    elf.link_gc_sections = true;
-    elf.link_function_sections = true;
-    elf.link_data_sections = true;
+
+    bootloader.root_module.addImport("shared", shared_lib);
+    bootloader.setLinkerScript(b.path("bootloader/linkerscript.ld"));
+    bootloader.addLibraryPath(.{ .cwd_relative = "/usr/arm-none-eabi/lib" });
+    bootloader.addLibraryPath(.{ .cwd_relative =  "/usr/lib/gcc/arm-none-eabi/13.2.0/thumb/v7e-m+fp/hard/" });
+    // bootloader.link_gc_sections = true;
+    // bootloader.link_function_sections = true;
+    // bootloader.link_data_sections = true;
 
 
-    const elf_install = b.addInstallArtifact(elf, .{});
+    b.installArtifact(bootloader);
+    const copy_bin = b.addObjCopy(bootloader.getEmittedBin(), .{ .format = .bin, });
+    copy_bin.step.dependOn(&bootloader.step);
+    b.default_step.dependOn(&copy_bin.step);
 
-    const bin = b.addObjCopy(elf.getEmittedBin(), .{ .format = .bin });
-    const bin_install = b.addInstallBinFile(bin.getOutput(), "firmware.bin");
+    const bootloader_module = b.createModule(.{ .root_source_file = copy_bin.getOutput() });
 
-    bin_install.step.dependOn(&elf_install.step);
+    // Firmware Section
 
-    b.default_step.dependOn(&bin_install.step);
+    const firmware = b.addExecutable(.{
+        .name = "firmware.elf",
+        .root_source_file = b.path("app/src/main.zig"),
+        .target = target,
+        .optimize = optimize,
+        .link_libc = false,
+        .linkage = .static,
+        .single_threaded = true,
+    });
 
+    
+    firmware.root_module.addImport("shared", shared_lib);
+    firmware.root_module.addImport("bootloader", bootloader_module);
+    firmware.setLinkerScript(b.path("app/linkerscript.ld"));
+    firmware.addLibraryPath(.{ .cwd_relative = "/usr/arm-none-eabi/lib" });
+    firmware.addLibraryPath(.{ .cwd_relative =  "/usr/lib/gcc/arm-none-eabi/13.2.0/thumb/v7e-m+fp/hard/" });
+    firmware.link_gc_sections = true;
+    firmware.link_function_sections = true;
+    firmware.link_data_sections = true;
+
+
+    const firmware_elf_install = b.addInstallArtifact(firmware, .{});
+
+    const firmware_bin = b.addObjCopy(firmware.getEmittedBin(), .{ .format = .bin });
+    const firmware_bin_install = b.addInstallBinFile(firmware_bin.getOutput(), "firmware.bin");
+
+    firmware_bin_install.step.dependOn(&firmware_elf_install.step);
+
+
+    b.default_step.dependOn(&firmware_bin_install.step);
 
     const remote_debug = b.addSystemCommand(&.{
         "openocd","-f", "/usr/share/openocd/scripts/interface/stlink-v2.cfg", "-f", "/usr/share/openocd/scripts/target/stm32f4x.cfg",

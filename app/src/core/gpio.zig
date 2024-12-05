@@ -1,0 +1,9 @@
+const map = @import("memory_map.zig");
+pub const GPIOA_BASE: u32 = map.AHB1 + 0x0000;
+pub const GPIOB_BASE: u32 = map.AHB1 + 0x0400;
+pub const GPIOC_BASE: u32 = map.AHB1 + 0x0800;
+pub const GPIOD_BASE: u32 = map.AHB1 + 0x0C00;
+pub const GPIOE_BASE: u32 = map.AHB1 + 0x1000;
+pub const GPIOF_BASE: u32 = map.AHB1 + 0x1400;
+pub const GPIOG_BASE: u32 = map.AHB1 + 0x1800;
+pub const GPIOH_BASE: u32 = map.AHB1 + 0x1C00;

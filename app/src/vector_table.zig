@@ -11,7 +11,7 @@ pub fn export_vector_table() void {
 extern var _stack: anyopaque;
 extern var _data_loadaddr: anyopaque;
 extern var _data: anyopaque;
-extern var edata: anyopaque;
+extern var _edata: anyopaque;
 extern var _ebss: anyopaque;
 
 
