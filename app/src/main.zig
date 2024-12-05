@@ -4,14 +4,14 @@ comptime {
     @import("vector_table.zig").export_vector_table();
 }
 
-// const MAX_BOOTLOADER_SIZE: u32 = 0x8000;
-//
-// export const bootloader_data: [MAX_BOOTLOADER_SIZE]u8 linksection(".bootloader_section") = v: {
-//     const raw_bytes = @embedFile("bootloader");
-//     var ret: [MAX_BOOTLOADER_SIZE]u8 = .{0} ** MAX_BOOTLOADER_SIZE;
-//     @memcpy(ret[0..raw_bytes.len], raw_bytes);
-//     break :v ret;
-// };
+const MAX_BOOTLOADER_SIZE: u32 = 0x8000;
+
+export const bootloader_data: [MAX_BOOTLOADER_SIZE]u8 linksection(".bootloader_section") = v: {
+    const raw_bytes = @embedFile("bootloader");
+    var ret: [MAX_BOOTLOADER_SIZE]u8 = .{0} ** MAX_BOOTLOADER_SIZE;
+    @memcpy(ret[0..raw_bytes.len], raw_bytes);
+    break :v ret;
+};
 
 const RCC_AHB1_ENR: *volatile u32 = @ptrFromInt(MAP.RCC_AHB1_ENR);
 const GPIOA_MODER: *volatile u32 = @ptrFromInt(MAP.GPIOA_BASE + 0x00);

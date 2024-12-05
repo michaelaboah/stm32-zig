@@ -1,3 +1,4 @@
+pub const FLASH_BASE: u32 = 0x0800_0000;
 pub const PERIPH_BASE: u32 = 0x4000_0000;
 /// Advanced Peripheral Bus 1
 /// Address: 0x4000_0000

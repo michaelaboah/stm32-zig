@@ -34,9 +34,13 @@ ENTRY(reset_handler)
 /* Define sections. */
 SECTIONS
 {
-	.text : {
-		KEEP (*(.bootloader_section))
+    /* .bootloader : { */
+	/*  KEEP (*(.bootloader_section)) */
+    /*     . = ALIGN(4); */ 
+    /* } >rom */
 
+	.text : {
+	    KEEP (*(.bootloader_section))
 		*(.vectors)	/* Vector table */
 		. = ALIGN(16);
 

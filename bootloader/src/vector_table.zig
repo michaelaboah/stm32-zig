@@ -27,7 +27,7 @@ fn null_handler() callconv(.C) noreturn {
 
 const reset_handler = @import("startup.zig").reset_handler;
 
-const VectorTable = extern struct {
+pub const VectorTable = extern struct {
     initial_sp_value: *anyopaque, // Reserved  (0x0000 0000)
     reset: InterruptHandlerFn = reset_handler, // Reset  (0x0000 0004)
     nmi: InterruptHandlerFn = null_handler, // Non maskable interrupt. The RCC Clock Security System (CSS) is linked to the NMI vector  (0x0000 0008)

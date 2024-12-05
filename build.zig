@@ -12,7 +12,7 @@ pub fn build(b: *std.Build) void {
         .cpu_features_add = std.Target.arm.featureSet(&[_]std.Target.arm.Feature{std.Target.arm.Feature.v7em})
     });
 
-    const optimize = b.standardOptimizeOption(.{});
+    const optimize = b.standardOptimizeOption(.{.preferred_optimize_mode = .ReleaseSafe});
 
     const shared_lib = b.addModule("shared", .{ 
         .root_source_file = b.path("shared/shared.zig"),
@@ -25,7 +25,7 @@ pub fn build(b: *std.Build) void {
         .name = "bootloader.elf",
         .root_source_file = b.path("bootloader/src/main.zig"),
         .target = target,
-        .optimize = optimize,
+        .optimize = .ReleaseSafe,
         .link_libc = false,
         .linkage = .static,
         .single_threaded = true,
@@ -36,13 +36,13 @@ pub fn build(b: *std.Build) void {
     bootloader.setLinkerScript(b.path("bootloader/linkerscript.ld"));
     bootloader.addLibraryPath(.{ .cwd_relative = "/usr/arm-none-eabi/lib" });
     bootloader.addLibraryPath(.{ .cwd_relative =  "/usr/lib/gcc/arm-none-eabi/13.2.0/thumb/v7e-m+fp/hard/" });
-    // bootloader.link_gc_sections = true;
-    // bootloader.link_function_sections = true;
-    // bootloader.link_data_sections = true;
+    bootloader.link_gc_sections = true;
+    bootloader.link_function_sections = true;
+    bootloader.link_data_sections = true;
 
 
     b.installArtifact(bootloader);
-    const copy_bin = b.addObjCopy(bootloader.getEmittedBin(), .{ .format = .bin, });
+    const copy_bin = b.addObjCopy(bootloader.getEmittedBin(), .{ .format = .bin, .pad_to = 0x8000 });
     copy_bin.step.dependOn(&bootloader.step);
     b.default_step.dependOn(&copy_bin.step);
 
@@ -98,6 +98,7 @@ pub fn build(b: *std.Build) void {
 
     b.step("dump", "Dump Object File").dependOn(&dump.step);
 
+    _ = 0x237b8;
 
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
