@@ -21,26 +21,24 @@ fn default_handler() callconv(.C) noreturn {
     while (true) {}
 }
 
-fn null_handler() callconv(.C) noreturn {
-    while (true) {}
-}
+fn null_handler() callconv(.C) void {}
 
 const reset_handler = @import("startup.zig").reset_handler;
 
-const VectorTable = extern struct {
+pub const VectorTable = extern struct {
     initial_sp_value: *anyopaque, // Reserved  (0x0000 0000)
     reset: InterruptHandlerFn = reset_handler, // Reset  (0x0000 0004)
     nmi: InterruptHandlerFn = null_handler, // Non maskable interrupt. The RCC Clock Security System (CSS) is linked to the NMI vector  (0x0000 0008)
     hard_fault: InterruptHandlerFn = default_handler, // All class of fault  (0x0000_000C)
     mem_manage: InterruptHandlerFn = default_handler, // Memory management  (0x0000_0010)
     bus_fault: InterruptHandlerFn = default_handler, // Pre-fetch fault, memory access fault  (0x0000_0014)
-    rsvp1: [4]u32 = undefined,
     usage_fault: InterruptHandlerFn = default_handler, // Undefined instruction of illegal state (0x0000_0018)
+    rsvp1: [4]u32 = undefined,
     sv_call: InterruptHandlerFn = default_handler, // System service call via SWI instruction (0x0000_002C)
     debug_monitor: InterruptHandlerFn = default_handler, // Debug Monitor (0x0000_0030)
     rsvp2: u32 = undefined,
     pend_sv: InterruptHandlerFn = default_handler, // Pendable request for system service (0x0000_0038)
-    sys_tick: InterruptHandlerFn = default_handler, // System tick timer (0x0000_003C)
+    sys_tick: InterruptHandlerFn = @import("core/system.zig").systick_handler, // System tick timer (0x0000_003C)
     wwdg: InterruptHandlerFn = default_handler, // Window Watchdog interrupt (0x0000_0040)
     pvd: InterruptHandlerFn = default_handler, // PVD through EXTI line detection interrupt (0x0000_0044)
     tamp_stamp: InterruptHandlerFn = default_handler, // Tamper and TimeStamp interrupts through the EXTI line (0x0000_0048)
@@ -48,7 +46,7 @@ const VectorTable = extern struct {
     flash: InterruptHandlerFn = default_handler, // Flash Global interrupt (0x0000_0050)
     rcc: InterruptHandlerFn = default_handler, // RCC Global interrupt (0x0000_0054)
     extl0: InterruptHandlerFn = default_handler, // EXTL Line0 interrupt (0x0000_0058)
-    extl1: InterruptHandlerFn = default_handler, // EXTL Line1 interrupt (0x0000_005C)
+    extl1: InterruptHandlerFn = default_handler, // EXTL Line1 interrupt (0x000_005C)
     extl2: InterruptHandlerFn = default_handler, // EXTL Line2 interrupt (0x0000_0060)
     extl3: InterruptHandlerFn = default_handler, // EXTL Line3 interrupt (0x0000_0064)
     extl4: InterruptHandlerFn = default_handler, // EXTL Line4 interrupt (0x0000_0068)
@@ -125,4 +123,4 @@ const VectorTable = extern struct {
     fpu: InterruptHandlerFn = default_handler, // FPU global interrupt (0x0000_0184)
 };
 
-const vector_table: VectorTable = .{ .initial_sp_value = &_stack, .reset = reset_handler };
+pub var vector_table: VectorTable = .{ .initial_sp_value = &_stack, .reset = reset_handler, };

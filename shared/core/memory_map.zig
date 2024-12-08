@@ -1,4 +1,8 @@
-pub const FLASH_BASE: u32 = 0x0800_0000;
+/// Code | ARMv7-M
+/// Address: 0x0000_0000
+pub const CODE_BASE: u32 = 0x0000_0000;
+pub const FLASH_BASE: u32 =  0x0800_0000;
+pub const SYS_MEM_BASE:u32 = 0x1FFF_0000;
 pub const PERIPH_BASE: u32 = 0x4000_0000;
 /// Advanced Peripheral Bus 1
 /// Address: 0x4000_0000
@@ -82,3 +86,74 @@ pub const GPIOG_BASE: u32 = AHB1 + 0x1800;
 /// General Purpose I/O H Base
 /// Address: 0x4002_1C00
 pub const GPIOH_BASE: u32 = AHB1 + 0x1C00;
+
+
+/// Cortex-M4 Internal Peripheral | ARMv7-M
+/// Private Peripheral BUS Internal | ARMv7-M
+/// Address: 0xE000_0000
+pub const PPBI_BASE: u32 = 0xE000_0000;
+/// Cortex-M4 External Peripheral | ARMv7-M
+/// Private Peripheral BUS External | ARMv7-M
+/// Address: 0xE004_0000
+pub const PPBE_BASE: u32 = 0xE004_0000;
+/// System Control Space | ARMv7-M
+/// Address: 0xE000_E000
+pub const SCS_BASE: u32 = PPBI_BASE + 0xE000;
+/// System Control Block | ARMv7-M
+/// Address: 0xE000_ED00
+pub const SCB_BASE: u32 = SCS_BASE + 0x0D00;
+
+/// System Control Space | ARMv7-M
+pub const SCS = struct {
+    /// SysTick Control and Status Register | ARMv7-M
+    /// Address: 0xE000_E010
+    pub const STCSR: u32 = SCS_BASE + 0x10;
+    /// SysTick Reload Value Register | ARMv7-M
+    /// Address: 0xE000_E014
+    pub const STRVR: u32 = SCS_BASE + 0x14;
+    /// SysTick Current Value Register | ARMv7-M
+    /// Address: 0xE000_E018
+    pub const STCVR: u32 = SCS_BASE + 0x18;
+    /// SysTick Calibration Register | ARMv7-M
+    /// Address: 0xE000_E01C
+    pub const STCR: u32 = SCS_BASE + 0x1C;
+};
+
+/// System Control Block | ARMv7-M
+pub const SCB = struct {
+    /// CPUID Base Register | ARMv7-M
+    /// https://developer.arm.com/documentation/100235/0004/the-cortex-m33-peripherals/system-control-block/cpuid-base-register?lang=en
+    /// Address: 0xE000_ED00
+    pub const CPUID: u32 = SCB_BASE + 0x00;
+    /// Interrupt Control and State Register | ARMv7-M
+    /// Address: 0xE000_ED04
+    pub const ICSR: u32 = SCB_BASE + 0x04;
+    /// Vector Table Offset Register | ARMv7-M
+    /// https://developer.arm.com/documentation/100235/0004/the-cortex-m33-peripherals/system-control-block/vector-table-offset-register?lang=en
+    /// Address: 0xE000_ED08
+    pub const VTOR: u32 = SCB_BASE + 0x08;
+    /// Application Interrupt and Reset Control Register | ARMv7-M
+    /// Address: 0xE000_ED0C
+    pub const AIRCR: u32 = SCB_BASE + 0x0C;
+    /// System Control Register | ARMv7-M
+    /// Address: 0xE000_ED10
+    pub const SCR: u32 = SCB_BASE + 0x10;
+    /// Configuration Control Register | ARMv7-M
+    /// Address: 0xE000_ED14
+    pub const CCR: u32 = SCB_BASE + 0x14;
+    /// System Handler Priority Register 1 | ARMv7-M
+    /// MemManage, BusFault, UsageFault, SecureFault handlers
+    /// https://developer.arm.com/documentation/100235/0004/the-cortex-m33-peripherals/system-control-block/system-handler-priority-registers?lang=en
+    /// Address: 0xE000_ED18
+    pub const SHPR1: u32 = SCB_BASE + 0x18;
+    /// System Handler Priority Register 2 | ARMv7-M
+    /// SVCall handler
+    /// https://developer.arm.com/documentation/100235/0004/the-cortex-m33-peripherals/system-control-block/system-handler-priority-registers?lang=en
+    /// Address: 0xE000_ED1C
+    pub const SHPR2: u32 = SCB_BASE + 0x1C;
+    /// System Handler Priority Register 3 | ARMv7-M
+    /// PendSV, SysTick handlers
+    /// https://developer.arm.com/documentation/100235/0004/the-cortex-m33-peripherals/system-control-block/system-handler-priority-registers?lang=en
+    /// Address: 0xE000_ED20
+    pub const SHPR3: u32 = SCB_BASE + 0x20;
+};

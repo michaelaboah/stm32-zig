@@ -12,7 +12,7 @@ pub fn build(b: *std.Build) void {
         .cpu_features_add = std.Target.arm.featureSet(&[_]std.Target.arm.Feature{std.Target.arm.Feature.v7em})
     });
 
-    const optimize = b.standardOptimizeOption(.{.preferred_optimize_mode = .ReleaseSafe});
+    const optimize = b.standardOptimizeOption(.{});
 
     const shared_lib = b.addModule("shared", .{ 
         .root_source_file = b.path("shared/shared.zig"),
@@ -25,7 +25,7 @@ pub fn build(b: *std.Build) void {
         .name = "bootloader.elf",
         .root_source_file = b.path("bootloader/src/main.zig"),
         .target = target,
-        .optimize = .ReleaseSafe,
+        .optimize = optimize,
         .link_libc = false,
         .linkage = .static,
         .single_threaded = true,
@@ -43,10 +43,10 @@ pub fn build(b: *std.Build) void {
 
     b.installArtifact(bootloader);
     const copy_bin = b.addObjCopy(bootloader.getEmittedBin(), .{ .format = .bin, .pad_to = 0x8000 });
+    const bootloader_bin_install = b.addInstallBinFile(copy_bin.getOutput(), "bootloader.bin");
     copy_bin.step.dependOn(&bootloader.step);
     b.default_step.dependOn(&copy_bin.step);
 
-    const bootloader_module = b.createModule(.{ .root_source_file = copy_bin.getOutput() });
 
     // Firmware Section
 
@@ -62,7 +62,6 @@ pub fn build(b: *std.Build) void {
 
     
     firmware.root_module.addImport("shared", shared_lib);
-    firmware.root_module.addImport("bootloader", bootloader_module);
     firmware.setLinkerScript(b.path("app/linkerscript.ld"));
     firmware.addLibraryPath(.{ .cwd_relative = "/usr/arm-none-eabi/lib" });
     firmware.addLibraryPath(.{ .cwd_relative =  "/usr/lib/gcc/arm-none-eabi/13.2.0/thumb/v7e-m+fp/hard/" });
@@ -72,6 +71,8 @@ pub fn build(b: *std.Build) void {
 
 
     const firmware_elf_install = b.addInstallArtifact(firmware, .{});
+
+    firmware_elf_install.step.dependOn(&bootloader_bin_install.step);
 
     const firmware_bin = b.addObjCopy(firmware.getEmittedBin(), .{ .format = .bin });
     const firmware_bin_install = b.addInstallBinFile(firmware_bin.getOutput(), "firmware.bin");
@@ -92,6 +93,7 @@ pub fn build(b: *std.Build) void {
         "st-flash", "--reset", "write", "zig-out/bin/firmware.bin", "0x8000000"
     });
 
+    flash.step.dependOn(b.default_step);
     b.step("flash", "Flash firmware").dependOn(&flash.step);
 
     const dump = b.addSystemCommand(&.{ "llvm-objdump", "-D", "zig-out/bin/firmware.elf" });

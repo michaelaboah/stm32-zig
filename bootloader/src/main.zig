@@ -10,9 +10,10 @@ const FIRMWARE_START: u32 = BOOTLOADER_SIZE + MAP.FLASH_BASE;
 
 
 fn jump_to_main() void {
-    const main_vector_table: *vector.VectorTable = @ptrFromInt(FIRMWARE_START + 0x4);
+    const main_vector_table: *vector.VectorTable = @ptrFromInt(FIRMWARE_START);
     main_vector_table.reset();
 }
 
-export fn main() callconv(.C) noreturn {
+export fn main() callconv(.C) void {
+    jump_to_main();
 }

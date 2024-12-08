@@ -36,6 +36,11 @@ SECTIONS
 {
 	.text : {
 		*(.vectors)	/* Vector table */
+		. = ALIGN(16);
+
+		KEEP (*(.firmware_info))
+		KEEP (*(.firmware_signature))
+
 		*(.text*)	/* Program code */
 		. = ALIGN(4);
 		*(.rodata*)	/* Read-only data */
@@ -97,7 +102,7 @@ SECTIONS
 	_data_loadaddr = LOADADDR(.data);
 
 	.bss : {
-		_sbss = .;
+        _sbss = .;
 		*(.bss*)	/* Read-write zero initialized data */
 		*(COMMON)
 		. = ALIGN(4);

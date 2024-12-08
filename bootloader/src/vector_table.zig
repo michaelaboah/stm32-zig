@@ -125,4 +125,4 @@ pub const VectorTable = extern struct {
     fpu: InterruptHandlerFn = default_handler, // FPU global interrupt (0x0000_0184)
 };
 
-const vector_table: VectorTable = .{ .initial_sp_value = &_stack };
+const vector_table: VectorTable = .{ .initial_sp_value = &_stack, .reset = reset_handler };
