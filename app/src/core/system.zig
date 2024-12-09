@@ -2,7 +2,7 @@ var ticks: u32 = 0;
 
 
 pub fn systick_handler() callconv(.C) void {
-    ticks += 1;
+    ticks +%= 1;
 }
 
 pub fn get_ticks() u32 {

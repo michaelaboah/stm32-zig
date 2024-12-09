@@ -14,10 +14,10 @@ comptime {
 const BOOT_SIZE: u32 = 0x8000;
 const SYS_CLK_FREQ = 16_000_000;
 
-const SCB_SHP3: *volatile u32 = @ptrFromInt(0xE000ED20);
-const SYSTICK_CTRL: *volatile u32 = @ptrFromInt(0xE000ED10); // Sys CSR
-const SYSTICK_LOAD: *volatile u32 = @ptrFromInt(0xE000ED14); // Sys RVR
-const SYSTICK_VAL: *volatile u32 = @ptrFromInt(0xE000ED18);  // Sys CVR
+const SCB_SHP3: *volatile u32 = @ptrFromInt(MAP.SCB.SHPR3);
+const SYSTICK_CTRL: *volatile u32 = @ptrFromInt(MAP.SCS.STCSR); // Sys CSR
+const SYSTICK_LOAD: *volatile u32 = @ptrFromInt(MAP.SCS.STRVR); // Sys RVR
+const SYSTICK_VAL: *volatile u32 = @ptrFromInt(MAP.SCS.STCVR);  // Sys CVR
 // const SYSTICK_CR: *volatile u32 = @ptrFromInt(0xE000E01C);   // Sys Calibration
 
 
@@ -36,12 +36,12 @@ export fn main() callconv(.C) noreturn {
     // Offset vector_table to use firmware instead of bootloader which is default
     VTOR.* = BOOT_SIZE;
 
-    // const desired_ticks: u32 = SYS_CLK_FREQ / 1000;
-    SYSTICK_CTRL.* = 16000 - 1; // Number of CLK cycles the interrupt should fire after
-    SCB_SHP3.* |= (0b11 << 6) << 24; // Setup systick to have a priority of 3;
+    const desired_ticks: u32 = SYS_CLK_FREQ / 1000;
+    SYSTICK_LOAD.* = desired_ticks - 1; // Number of CLK cycles the interrupt should fire after
+    // SCB_SHP3.* |= (0b11 << 6) << 24; // Setup systick to have a priority of 3;
     SYSTICK_VAL.* = 0; // Set counter back to 0;
     SYSTICK_CTRL.* = 0b111; // CLKSOURCE = 1 (processor clock), TICKINT = 1 (enable interrupt), ENABLE = 1 (enable systick
-    // vector.vector_table.sys_tick = system.systick_handler;
+    vector.vector_table.sys_tick = system.systick_handler;
     
     RCC_AHB1_ENR.* |= 0x00000001;
 
@@ -61,11 +61,11 @@ export fn main() callconv(.C) noreturn {
     while (true) {
         GPIOA_ODR.* ^= 0x00000020; // Toggle Pin 5 (bit 5).
                                    //
-        // system.delay(1000);
+        system.delay(1000);
 
-        for (0..160000) |_|{
-            asm volatile ("nop");
-        }
+        // for (0..160000) |_|{
+        //     asm volatile ("nop");
+        // }
     }
 }
 
