@@ -41,7 +41,6 @@ export fn main() callconv(.C) noreturn {
     // SCB_SHP3.* |= (0b11 << 6) << 24; // Setup systick to have a priority of 3;
     SYSTICK_VAL.* = 0; // Set counter back to 0;
     SYSTICK_CTRL.* = 0b111; // CLKSOURCE = 1 (processor clock), TICKINT = 1 (enable interrupt), ENABLE = 1 (enable systick
-    vector.vector_table.sys_tick = system.systick_handler;
     
     RCC_AHB1_ENR.* |= 0x00000001;
 
