@@ -4,7 +4,7 @@ const std = @import("std");
 // declaratively construct a build graph that will be executed by an external
 // runner.
 pub fn build(b: *std.Build) void {
-    const target = b.resolveTargetQuery(.{
+    var target = b.resolveTargetQuery(.{
         .cpu_arch = .thumb, //
         .os_tag = .freestanding,
         .abi = .eabihf,
@@ -100,9 +100,36 @@ pub fn build(b: *std.Build) void {
 
     b.step("dump", "Dump Object File").dependOn(&dump.step);
 
-    _ = 0x237b8;
+    target = b.standardTargetOptions(.{});
 
-    // This declares intent for the executable to be installed into the
-    // standard location when the user invokes the "install" step (the default
-    // step when running `zig build`).
+
+    const shared_static_lib = b.addStaticLibrary(.{ 
+        .name = "shared",
+        .root_source_file = b.path("shared/shared.zig"),
+        .target = target,
+        .optimize = optimize
+    });
+
+    b.installArtifact(shared_static_lib);
+
+    const lib_unit_tests = b.addTest(.{
+        .root_source_file = b.path("shared/core/ringbuffer.zig"),
+        .target = target,
+        .optimize = optimize
+    });
+
+    const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
+
+    const exe_unit_tests = b.addTest(.{
+        .root_source_file = b.path("shared/core/ringbuffer.zig"),
+        .target = target,
+        .optimize = optimize
+    });
+
+    const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
+
+
+    const test_step = b.step("test", "Run unit tests");
+    test_step.dependOn(&run_lib_unit_tests.step);
+    test_step.dependOn(&run_exe_unit_tests.step);
 }

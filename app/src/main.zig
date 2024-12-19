@@ -31,16 +31,34 @@ const GPIOA_ODR: *volatile u32 = @ptrFromInt(MAP.GPIOA_BASE + 0x14);
 
 const VTOR: *volatile u32 = @ptrFromInt(MAP.SCB.VTOR);
 
-export fn main() callconv(.C) noreturn {
-
-    // Offset vector_table to use firmware instead of bootloader which is default
+/// 
+fn vector_setup() void {
     VTOR.* = BOOT_SIZE;
+}
 
-    const desired_ticks: u32 = SYS_CLK_FREQ / 1000;
-    SYSTICK_LOAD.* = desired_ticks - 1; // Number of CLK cycles the interrupt should fire after
+const SystickCtrl = struct {
+    /// Where the clock comes from: 0 = external, 1 = processor
+    clock_src: u2,
+
+};
+
+/// CLKSOURCE = 1 (processor clock), TICKINT = 1 (enable interrupt), ENABLE = 1 (enable systick
+fn systick_setup(ticks: u32, clk_src: u32, tick_int: u32, enable: u32) void {
+    SYSTICK_LOAD.* = ticks; // Number of CLK cycles the interrupt should fire after
     // SCB_SHP3.* |= (0b11 << 6) << 24; // Setup systick to have a priority of 3;
     SYSTICK_VAL.* = 0; // Set counter back to 0;
-    SYSTICK_CTRL.* = 0b111; // CLKSOURCE = 1 (processor clock), TICKINT = 1 (enable interrupt), ENABLE = 1 (enable systick
+    SYSTICK_CTRL.* = (clk_src << 2) | (tick_int << 1) | (enable << 0); 
+}
+
+export fn main() callconv(.C) noreturn {
+
+    vector_setup();
+    const desired_ticks: u32 = SYS_CLK_FREQ / 1000;
+    systick_setup(desired_ticks, 1, 1, 1);
+
+    // Offset vector_table to use firmware instead of bootloader which is default
+
+    
     
     RCC_AHB1_ENR.* |= 0x00000001;
 
