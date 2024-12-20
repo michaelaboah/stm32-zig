@@ -24,7 +24,7 @@ pub fn RingBuffer(comptime T: type, size: comptime_int) type {
 
             // 0b0000 = 0b1000 & 0b0111;
 
-            if (self.write_index == self.mask) {
+            if (self.write_index+1 == self.read_index) {
                 // Write head cannot be equal or ahead of Read Head
                 // Invalidated ring buffer
                 return null;
@@ -37,7 +37,7 @@ pub fn RingBuffer(comptime T: type, size: comptime_int) type {
 
         fn read(self: *Self) ?T {
             // Buffer is empty
-            if (self.read_index == self.write_index) return null;
+            if (self.read_index+1 == self.write_index) return null;
 
             defer self.read_index = (self.read_index+1) & self.mask;
 
@@ -45,13 +45,16 @@ pub fn RingBuffer(comptime T: type, size: comptime_int) type {
         }
     };
 }
+const std = @import("std");
+const testing = std.testing;
+const print = std.debug.print;
 
-const testing = @import("std").testing;
+
 
 test "insertion" {
     var ring = RingBuffer(u8, 8).init();
     
-    ring.write(32).?;
+    _ = ring.write(32);
 
     try testing.expect(32 == ring.read());
 }
@@ -59,7 +62,7 @@ test "insertion" {
 test "deletion" {
     var ring = RingBuffer(u8, 8).init();
     
-    ring.write(32).?;
+    _ = ring.write(32);
 
     try testing.expect(32 == ring.buffer[0]);
     try testing.expect(32 == ring.read().?);
@@ -67,13 +70,18 @@ test "deletion" {
 }
 
 test "overflow" {
-    var ring = RingBuffer(usize, 10).init();
+    var ring = RingBuffer(usize, 16).init();
 
-    for (0..12) |i| {
-        ring.write(@intCast(i)).?;
+    for (0..18) |i| {
+        _ = ring.write(@intCast(i));
     }
 
+    print("{any}\n", .{ring.buffer});
+
     try testing.expect(ring.buffer[9] == 9);
+    try testing.expect(ring.buffer[0] == 16);
+    try testing.expect(ring.buffer[1] == 17);
+    try testing.expect(ring.buffer[2] == 2);
 }
 
 test "insertion at overflow" {}
