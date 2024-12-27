@@ -103,6 +103,8 @@ pub const SCS_BASE: u32 = PPBI_BASE + 0xE000;
 /// Address: 0xE000_ED00
 pub const SCB_BASE: u32 = SCS_BASE + 0x0D00;
 
+
+
 /// System Control Space | ARMv7-M
 pub const SCS = struct {
     /// SysTick Control and Status Register | ARMv7-M
@@ -157,3 +159,29 @@ pub const SCB = struct {
     /// Address: 0xE000_ED20
     pub const SHPR3: u32 = SCB_BASE + 0x20;
 };
+
+/// Universial Synchronous/Asynchronous Receive/Transmitter 1
+/// Address: 0x4001_0000
+pub const TIM1: u32 = APB2 + 0x0000;
+/// Address: 0x4001_0400
+pub const TIM8: u32 = APB2 + 0x4000;
+/// Universial Synchronous/Asynchronous Receive/Transmitter 1
+/// Address: 0x4001_1000
+pub const USART1: u32 = APB2 + 0x1000;
+/// Universial Synchronous/Asynchronous Receive/Transmitter 6
+/// Address: 0x4001_1400
+pub const USART6: u32 = APB2 + 0x1400;
+
+
+/// Universial Synchronous/Asynchronous Receive/Transmitter 1
+/// Address: 0x4000_4400
+pub const USART2: u32 = APB1 + 0x4400;
+/// Universial Synchronous/Asynchronous Receive/Transmitter 1
+/// Address: 0x4000_4800
+pub const USART3: u32 = APB1 + 0x4800;
+/// Universial Synchronous/Asynchronous Receive/Transmitter 1
+/// Address: 0x4000_4C00
+pub const USART4: u32 = APB1 + 0x4C00;
+/// Universial Synchronous/Asynchronous Receive/Transmitter 1
+/// Address: 0x4000_5000
+pub const USART5: u32 = APB1 + 0x5000;
