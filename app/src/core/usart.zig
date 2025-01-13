@@ -13,8 +13,8 @@ const GpioA: *volatile gpio.Port  = @ptrFromInt(map.GPIOA_BASE + 0x00);
 pub fn setup() void {
     // Alternate Function
     const af: u8 = 7;
-    const tx_pin: u32 = map.GPIOA_BASE | 2;
-    const rx_pin: u32 = map.GPIOA_BASE | 3;
+    const tx_pin: u32 = 2;
+    const rx_pin: u32 = 3;
 
 
 

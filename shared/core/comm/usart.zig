@@ -22,6 +22,7 @@ pub const Usart = struct {
     /// Offset: 0x18
     GTPR: u32,
 
+
     pub inline fn read_ready(self: Self) bool {
         const RXNE: u32 = (1 << 5); // Read Data Register Not Empty
                                     // 0: Data is not received | 1: Received data is read to be read

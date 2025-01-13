@@ -90,7 +90,7 @@ pub fn build(b: *std.Build) void {
 
 
     const flash = b.addSystemCommand(&.{
-        "st-flash", "--reset", "write", "zig-out/bin/firmware.bin", "0x8000000"
+        "sudo", "st-flash", "--reset", "write", "zig-out/bin/firmware.bin", "0x8000000"
     });
 
     flash.step.dependOn(b.default_step);
@@ -132,4 +132,27 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_lib_unit_tests.step);
     test_step.dependOn(&run_exe_unit_tests.step);
+
+
+    const updater_exe = b.addExecutable(.{
+        .name = "updater",
+        .target = b.resolveTargetQuery(.{}),
+        .root_source_file = b.path("tools/updater.zig"),
+    });
+
+    const serial = b.dependency("serial", .{
+        // .root_source_file = b.path("dependencies/serial/src/serial.zig"),
+        // .target = b.resolveTargetQuery(.{}),
+        // .optimize = .Debug,
+    });
+
+    updater_exe.root_module.addImport("serial", serial.module("serial"));
+    // updater_exe.addIn
+
+    b.installArtifact(updater_exe);
+
+    const run_updater = b.addRunArtifact(updater_exe);
+
+    const run_updater_step = b.step("update", "Update the firmware");
+    run_updater_step.dependOn(&run_updater.step);
 }

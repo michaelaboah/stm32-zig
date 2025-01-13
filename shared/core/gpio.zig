@@ -35,6 +35,8 @@ pub const Port = struct {
 
     /// 
     pub inline fn set_mode(self: *volatile Port, pin: u8, mode: MODE) void {
+        _ = 0b00000011_00000011;
+        _ = 0b00000000_11111111;
         self.MODER &= ~(@as(u32, 3) << (pin) * 2);
         self.MODER |= (@intFromEnum(mode) & @as(u32, 3)) << (pin * 2);
     }
@@ -44,14 +46,14 @@ pub const Port = struct {
         // Note to self, anything pin below 7 or 0b0111 will result to 0 if (pin >> 3) and anything above will result to 1
         // Put another way (pin / 2^3) 
         // Everything in the () is to find the 4bit block we want and the clear it
-        self.AFR[pin >> 3] &= ~(15 << (pin & 7) * 4); // and shift into place by 2 (2^2) 
+        self.AFR[pin >> 3] &= ~(@as(u32, 15) << (pin & 7) * 4); // and shift into place by 2 (2^2) 
                                                       
         // Select the 4bit block and add the alternate function value (no overwriting)
         self.AFR[pin >> 3] |= @as(u32, af_num) << ((pin & 7) * 4);
     }
 };
 
-pub const MODE = enum(u32) {
+pub const MODE = enum(u8) {
     INPUT,
     OUTPUT,
     AF,
