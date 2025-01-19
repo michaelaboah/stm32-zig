@@ -145,7 +145,14 @@ pub fn build(b: *std.Build) void {
         // .target = b.resolveTargetQuery(.{}),
         // .optimize = .Debug,
     });
+    const collections_lib = b.addModule("shared", .{ 
+        .root_source_file = b.path("shared/collections.zig"),
+        .target = target,
+        .optimize = optimize
+    });
 
+
+    updater_exe.root_module.addImport("shared", collections_lib);
     updater_exe.root_module.addImport("serial", serial.module("serial"));
     // updater_exe.addIn
 

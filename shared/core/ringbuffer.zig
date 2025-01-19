@@ -10,7 +10,7 @@ pub fn RingBuffer(comptime T: type, size: comptime_int) type {
         /// Since this is Zig &= or some wrapping operation could be used, but I wanted to represent a C way of doing things
         mask: usize,
 
-        fn init() Self {
+        pub fn init() Self {
             return Self{
                 .read_index = 0,
                 .write_index = 0,
@@ -21,10 +21,10 @@ pub fn RingBuffer(comptime T: type, size: comptime_int) type {
         }
 
         // 0b0000 = 0b1000 & 0b0111;
-        fn blocking_write(self: *Self, item: T) ?void {
+        pub fn blocking_write(self: *Self, item: T) ?void {
             const next_write_index = (self.write_index+1) & self.mask;
 
-            if (next_write_index == self.write_index) {
+            if (next_write_index == self.read_index) {
                 // Write head cannot be equal or ahead of Read Head
                 // Invalidated ring buffer
                 return null;
@@ -33,43 +33,45 @@ pub fn RingBuffer(comptime T: type, size: comptime_int) type {
 
             self.buffer[self.write_index] = item;
             self.write_index = next_write_index;
+            self.length += 1;
         }
 
         /// Return old data, could also just discard
-        fn non_blocking_write(self: *Self, item: T) ?T {
+        pub fn non_blocking_write(self: *Self, item: T) void {
             const next_write_index = (self.write_index+1) & self.mask;
-            var old_value: ?T = null;
+            // var old_value: ?T = null;
 
             // Overwrite data in read_index
             if (next_write_index == self.write_index) {
-                old_value = self.buffer[self.read_index];
+                // old_value = self.buffer[self.read_index];
                 self.read_index = (self.read_index + 1) & self.mask;
                 // self.write_index = ne
             }
 
             self.buffer[self.write_index] = item;
-
             self.write_index = next_write_index;
 
-            if (old_value) |v| {  
-                return v;
+            if (self.length < self.buffer.len) {
+                self.length += 1;
+            }
+        }
+
+        
+        pub fn read(self: *Self) ?T {
+            if (self.read_index == self.write_index) {
+                // Buffer empty
+                return null;
             }
 
-            return null;
-            
+            const value = self.buffer[self.read_index];
+            self.read_index = (self.read_index + 1) & self.mask;
+            self.length -= 1;
+            return value;
         }
 
-        fn read(self: *Self) ?T {
-            // Buffer is empty
-            if (self.read_index == self.write_index) return null;
-
-            defer self.read_index = (self.read_index+1) & self.mask;
-
-            return self.buffer[self.read_index];
-        }
 
         /// Reset indices to 0 and drop buffer
-        fn clear(self: *Self) void {
+        pub fn clear(self: *Self) void {
             self.write_index = 0;
             self.read_index = 0;
             self.buffer = undefined;
