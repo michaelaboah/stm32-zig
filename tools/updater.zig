@@ -146,7 +146,21 @@ pub fn main() !void {
             temp_pack_buf[i] = rx_buffer.read().?;
         }
 
-        // const rx_packet = Packet.from_buffer(&rx_buffer[0..18]);
-        std.debug.print("Received {any} packet through UART\n", .{temp_pack_buf});
+        const rx_packet = Packet.from_buffer(temp_pack_buf[0..]);
+        
+        // std.debug.print("{}\n", .{rx_packet});
+        if (rx_packet.crc != 211) { //crc8(temp_pack_buf[0..17])
+            std.debug.print("Need to re-transmit: {any}\n", .{temp_pack_buf});
+        }
+
+        if (rx_packet.retx) {
+            std.debug.print("Retransmission requested: {any}\n", .{temp_pack_buf});
+        }
+
+        if (rx_packet.ack == null) {
+            unreachable; 
+        }
+
+
     }
 }
